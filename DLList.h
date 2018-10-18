@@ -32,11 +32,13 @@ public:
     ~DLList();
 
     size_t getSize()const;
+    bool find(const T& el)const;
 
     T& operator[](size_t index);
 
     void push(const T& dt);
     void pop();
+    void popByIndex(size_t index);
     T& top()const;
 };
 
@@ -127,6 +129,26 @@ size_t DLList<T>::getSize()const
 }
 
 template <typename T>
+bool DLList<T>::find(const T& el)const
+{
+    if(first == nullptr)
+    {
+        throw logic_error("Empty list");
+    }
+    Node<T>* it = new Node<T>(first->data, first->next, nullptr);
+    bool flag = false;
+    while(it != nullptr)
+    {
+        if(it->data == el){
+            flag = true;
+            break;
+        }
+        it = it->next;
+    }
+    return flag;
+}
+
+template <typename T>
 T& DLList<T>::operator[](size_t index)
 {
     if(index < 0 || index >= this->size)
@@ -170,7 +192,7 @@ void DLList<T>::push(const T& dt)
     if(first == nullptr)
     {
         first = new Node<T>(dt, nullptr, nullptr);
-        last = new Node<T>(dt, nullptr, nullptr);
+        last = first;
     }
     else
     {
@@ -196,6 +218,72 @@ void DLList<T>::pop()
         last = nullptr;
     lastFound = nullptr;
     lastFoundIndex = -1;
+}
+
+template <typename T>
+void DLList<T>::popByIndex(size_t index)
+{
+    if(index < 0 || index >= size)
+        throw out_of_range("Invalid index");
+    if(size == 1)
+    {
+        delete first;
+        first = nullptr;
+        last = nullptr;
+        size == 0;
+    }
+    else
+    {
+        if((abs(index - this->lastFoundIndex) < abs(index - this->size))
+        && lastFoundIndex != -1)
+        {
+            if(index > this->lastFoundIndex)
+            {
+                while(lastFoundIndex != index)
+                {
+                    lastFound = lastFound->next;
+                    lastFoundIndex++;
+                }
+            }
+            else if (index < this->lastFoundIndex)
+            {
+                while(lastFoundIndex != index)
+                {
+                    lastFound = lastFound->prev;
+                    lastFoundIndex--;
+                }
+            }
+        }
+        else
+        {
+            this->lastFound = this->first;
+            this->lastFoundIndex = 0;
+            while(lastFoundIndex != index)
+            {
+                lastFound = lastFound->next;
+                lastFoundIndex++;
+            }
+        }
+        if(lastFound == last)
+        {
+            last = last->prev;
+            last->next = nullptr;
+        }
+        else if(lastFound == first)
+        {
+            first = first->next;
+            first->prev = nullptr;
+        }
+        else
+        {
+            lastFound->prev->next = lastFound->next;
+            lastFound->next->prev = lastFound->prev;
+        }
+        delete lastFound;
+        lastFound = nullptr;
+        lastFoundIndex = -1;
+        size--;
+    }
 }
 
 template <typename T>
